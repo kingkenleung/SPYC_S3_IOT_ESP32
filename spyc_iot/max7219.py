@@ -40,52 +40,53 @@ _SCANLIMIT = const(11)
 _SHUTDOWN = const(12)
 _DISPLAYTEST = const(15)
 
-__NARROWCHARACTERS = const((':', ' '))
+__NARROWCHARACTERS = const((":", " "))
 
 
 # 0-9 :
 digit_pixels = [
-    0x000f09090909090f,
+    0x000F09090909090F,
     0x0004040404040404,
-    0x000f01010f08080f,
-    0x000f08080f08080f,
-    0x000808080f090909,
-    0x000f08080f01010f,
-    0x000f09090f01010f,
-    0x000808080808080f,
-    0x000f09090f09090f,
-    0x000f08080f09090f,
-    0x0000000100010000
+    0x000F01010F08080F,
+    0x000F08080F08080F,
+    0x000808080F090909,
+    0x000F08080F01010F,
+    0x000F09090F01010F,
+    0x000808080808080F,
+    0x000F09090F09090F,
+    0x000F08080F09090F,
+    0x0000000100010000,
 ]
 
 letter_pixels = [
-  0x0909090f09090600,
-  0x0709090709090700,
-  0x0f09010101090f00,
-  0x0709090909090700,
-  0x0f01010f01010f00,
-  0x0101010f01010f00,
-  0x0f09090d01090f00,
-  0x0909090f09090900,
-  0x0702020202020700,
-  0x0705050404040f00,
-  0x0905030303050900,
-  0x0f01010101010100,
-  0x111111151b111100,
-  0x09090d0f0b090900,
-  0x0f09090909090f00,
-  0x0101010f09090f00,
-  0x603c766666663c00,
-  0x66361e3e66663e00,
-  0x3c66603c06663c00,
-  0x18181818185a7e00,
-  0x7c66666666666600,
-  0x183c666666666600,
-  0xc6eefed6c6c6c600,
-  0xc6c66c386cc6c600,
-  0x1818183c66666600,
-  0x7e060c1830607e00
+    0x0909090F09090600,
+    0x0709090709090700,
+    0x0F09010101090F00,
+    0x0709090909090700,
+    0x0F01010F01010F00,
+    0x0101010F01010F00,
+    0x0F09090D01090F00,
+    0x0909090F09090900,
+    0x0702020202020700,
+    0x0705050404040F00,
+    0x0905030303050900,
+    0x0F01010101010100,
+    0x111111151B111100,
+    0x09090D0F0B090900,
+    0x0F09090909090F00,
+    0x0101010F09090F00,
+    0x0C07070505050700,
+    0x090D070F09090F00,
+    0x0F09080F01090F00,
+    0x0202020202020700,
+    0x0E05050505050500,
+    0x060F090909090900,
+    0x111B151511111100,
+    0x11111B041B111100,
+    0x0606060F09090900,
+    0x0F0103060C080F00,
 ]
+
 
 class Matrix8x8:
     def __init__(self, spi, cs, num):
@@ -111,7 +112,7 @@ class Matrix8x8:
         # because inheritance from a native class is currently unsupported.
         # http://docs.micropython.org/en/latest/pyboard/library/framebuf.html
         self.fill = fb.fill  # (col)
-        self.pixel = fb.pixel # (x, y[, c])
+        self.pixel = fb.pixel  # (x, y[, c])
         self.hline = fb.hline  # (x, y, w, col)
         self.vline = fb.vline  # (x, y, h, col)
         self.line = fb.line  # (x1, y1, x2, y2, col)
@@ -147,10 +148,12 @@ class Matrix8x8:
         for y in range(8):
             self.cs(0)
             for m in range(self.num):
-                self.spi.write(bytearray([_DIGIT0 + y, self.buffer[(y * self.num) + m]]))
+                self.spi.write(
+                    bytearray([_DIGIT0 + y, self.buffer[(y * self.num) + m]])
+                )
             self.cs(1)
 
-    def time_dense(self, text, x, y, col = 1):
+    def time_dense(self, text, x, y, col=1):
         i = 0
         for j in range(0, len(text)):
             self.dense_digit(text[j], x + i, y, col)
@@ -160,38 +163,38 @@ class Matrix8x8:
                     continue
             i = i + 5
 
-    def time_dense_and_show(self, text, x=0, y=0, col = 1):
+    def time_dense_and_show(self, text, x=0, y=0, col=1):
         self.time_dense(text, x, y, col)
         self.show()
-        
+
     def read_bit_from_byte(self, byte, nth_bit):
-        '''
+        """
         The first bit starts from the right
-        '''
+        """
         return byte >> nth_bit & 1
 
     def read_byte_from_byte_sequence(self, byte_sequence, nth_sequence):
-        '''
+        """
         The first byte sequence starts from the right
-        '''
-        return byte_sequence >> nth_sequence * 8 & 0xff
-    
-    def byte_sequence(self, byte_sequence, x, y, col = 1):
+        """
+        return byte_sequence >> nth_sequence * 8 & 0xFF
+
+    def byte_sequence(self, byte_sequence, x, y, col=1):
         for row in range(8):
             row_byte = self.read_byte_from_byte_sequence(byte_sequence, row)
             for column in range(8):
                 if self.read_bit_from_byte(row_byte, column) == 1:
                     self.pixel(column + x, row + y, col)
 
-    def dense_digit(self, digit, x, y, col = 1):
+    def dense_digit(self, digit, x, y, col=1):
         digit_index = ord(digit) - 48
-        
+
         if digit_index < 0 or digit_index > 10:
             return
-        
+
         self.byte_sequence(digit_pixels[digit_index], x, y, col)
-        
-    def scroll_text(self, msg, refresh_rate = 10, y = 0, col = 1):
+
+    def scroll_text(self, msg, refresh_rate=10, y=0, col=1):
         msg_len = len(msg)
         for x in range(self.num * 8, -msg_len * 8, -1):
             self.text(msg, x, y, col)
