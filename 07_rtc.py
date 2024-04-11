@@ -23,7 +23,7 @@ display.byte_sequence(0x3c42818100242400, 16, 0)
 display.show()
 
 # Connect to Wi-Fi
-spyc_iot.connect_wifi('KL', 'duckduckduck0315')
+spyc_iot.connect_wifi('PYC_IOT', '15092021')
 
 
 # This function displays the current time on the LED matrix

@@ -33,6 +33,7 @@ display.fill(0)
 def show_name(_timer):
     display.scroll_text("Shatin Pui Ying College", 30) # 30 columns per second
 #     display.str_dense_and_show("Shatin Pui Ying College")
+#     display.scroll_text("23°C 95%")
 
 Timer(1).init(mode=Timer.PERIODIC, period=1000, callback=show_name)
 

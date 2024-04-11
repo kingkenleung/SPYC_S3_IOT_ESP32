@@ -15,8 +15,6 @@ def get_thp(_timer):
     print(f"Temperature: {thp[0]}")
     print(f"Humidity: {thp[2]}")
     print(f"Air Pressure: {thp[1] / 100}")
-    # Try to find the current altitude (in meter) based on the following formula
-    # Altitude(m) = 44330 * (1 - (current_pressure / seaLevelPressure)^(1/5.255))
     print()
 
 

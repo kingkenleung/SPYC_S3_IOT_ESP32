@@ -7,7 +7,8 @@ https://github.com/mcauser/micropython-max7219
 
 MIT License
 Copyright (c) 2017 Mike Causer
-Copyright (c) 2023 kingkenleung
+Copyright (c) 2023 kingkenleung, Kynson Szetau
+
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
