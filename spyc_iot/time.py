@@ -6,4 +6,4 @@ def get_time_string():
     minute = f'{current_time[4]:02}'
     second = f'{current_time[5]:02}'
     
-    return f'{hour} {minute} {second}'
+    return f'{hour}:{minute}:{second}'

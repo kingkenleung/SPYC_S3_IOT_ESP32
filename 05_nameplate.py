@@ -21,20 +21,22 @@ display.fill(0)
 # The following displays a smiling face, starting at column 16 row 0
 # To get your own byte sequence, which is helpful if you want to display another pattern, visit https://xantorohara.github.io/led-matrix-editor/
 # and copy the 'hex' value next to the buttons. Replace '3c42818100242400' with your new value (keep the 0x).
-display.byte_sequence(0x3c42818100242400, 16, 0)
+# display.byte_sequence(0x3c42818100242400, 16, 0)
 
 
 # This will show everything that is previously requested (e.g. the smiling face), the matrix will not be updated unless display.show() is called
-display.show()
-time.sleep(0.5)
-
-display.fill(0)
+# display.show()
+# time.sleep(0.5)
+# 
+# display.fill(0)
 
 def show_name(_timer):
-#     display.scroll_text("Shatin Pui Ying College", 30)
-    display.time_dense_and_show("12345")
+    display.scroll_text("Shatin Pui Ying College", 30) # 30 columns per second
+#     display.str_dense_and_show("Shatin Pui Ying College")
 
-Timer(1).init(mode=Timer.PERIODIC, period=3000, callback=show_name)
+Timer(1).init(mode=Timer.PERIODIC, period=1000, callback=show_name)
+
+
 
 
 

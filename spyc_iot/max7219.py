@@ -1,4 +1,3 @@
-# Original license
 """
 This is a derived work, modified from https://github.com/mcauser/micropython-max7219.
 The following newly added and/or modified code, is licensed under MIT
@@ -8,6 +7,7 @@ https://github.com/mcauser/micropython-max7219
 
 MIT License
 Copyright (c) 2017 Mike Causer
+Copyright (c) 2023 kingkenleung
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,53 +40,53 @@ _SCANLIMIT = const(11)
 _SHUTDOWN = const(12)
 _DISPLAYTEST = const(15)
 
-__NARROWCHARACTERS = const((":", " "))
+__WIDECHARACTERS = const((' ', 'M', 'W', 'X', '%'))
+__NARROWCHARACTERS = const((':', '.'))
 
-
-# 0-9 :
-digit_pixels = [
-    0x000F09090909090F,
-    0x0004040404040404,
-    0x000F01010F08080F,
-    0x000F08080F08080F,
-    0x000808080F090909,
-    0x000F08080F01010F,
-    0x000F09090F01010F,
-    0x000808080808080F,
-    0x000F09090F09090F,
-    0x000F08080F09090F,
-    0x0000000100010000,
-]
-
-letter_pixels = [
-    0x0909090F09090600,
-    0x0709090709090700,
-    0x0F09010101090F00,
-    0x0709090909090700,
-    0x0F01010F01010F00,
-    0x0101010F01010F00,
-    0x0F09090D01090F00,
-    0x0909090F09090900,
-    0x0702020202020700,
-    0x0705050404040F00,
-    0x0905030303050900,
-    0x0F01010101010100,
-    0x111111151B111100,
-    0x09090D0F0B090900,
-    0x0F09090909090F00,
-    0x0101010F09090F00,
-    0x0C07070505050700,
-    0x090D070F09090F00,
-    0x0F09080F01090F00,
-    0x0202020202020700,
-    0x0E05050505050500,
-    0x060F090909090900,
-    0x111B151511111100,
-    0x11111B041B111100,
-    0x0606060F09090900,
-    0x0F0103060C080F00,
-]
-
+char_patterns = {
+    '0': 0x000f09090909090f,
+    '1': 0x0004040404040404,
+    '2': 0x000f01010f08080f,
+    '3': 0x000f08080f08080f,
+    '4': 0x000808080f090909,
+    '5': 0x000f08080f01010f,
+    '6': 0x000f09090f01010f,
+    '7': 0x000808080808080f,
+    '8': 0x000f09090f09090f,
+    '9': 0x000f08080f09090f,
+    'A': 0x0909090F09090600,
+    'B': 0x0709090709090700,
+    'C': 0x0F09010101090F00,
+    'D': 0x0709090909090700,
+    'E': 0x0F01010F01010F00,
+    'F': 0x0101010F01010F00,
+    'G': 0x0F09090D01090F00,
+    'H': 0x0909090F09090900,
+    'I': 0x0702020202020700,
+    'J': 0x0705050404040F00,
+    'K': 0x0905030303050900,
+    'L': 0x0F01010101010100,
+    'M': 0x111111151B111100,
+    'N': 0x09090D0F0B090900,
+    'O': 0x0F09090909090F00,
+    'P': 0x0101010F09090F00,
+    'Q': 0x0C07070505050700,
+    'R': 0x090D070F09090F00,
+    'S': 0x0F09080F01090F00,
+    'T': 0x0202020202020700,
+    'U': 0x0e09090909090900,
+    'V': 0x060F090909090900,
+    'W': 0x111B151511111100,
+    'X': 0x11111B041B111100,
+    'Y': 0x0606060F09090900,
+    'Z': 0x0F0103060C080F00,
+    ':': 0x0000020000020000,
+    '°': 0x0000000000070507,
+    '%': 0x38293a0408172507,
+    '.': 0x0200000000000000,
+    ' ': 0x0000000000000000,
+    
+}
 
 class Matrix8x8:
     def __init__(self, spi, cs, num):
@@ -112,7 +112,7 @@ class Matrix8x8:
         # because inheritance from a native class is currently unsupported.
         # http://docs.micropython.org/en/latest/pyboard/library/framebuf.html
         self.fill = fb.fill  # (col)
-        self.pixel = fb.pixel  # (x, y[, c])
+        self.pixel = fb.pixel # (x, y[, c])
         self.hline = fb.hline  # (x, y, w, col)
         self.vline = fb.vline  # (x, y, h, col)
         self.line = fb.line  # (x1, y1, x2, y2, col)
@@ -148,56 +148,58 @@ class Matrix8x8:
         for y in range(8):
             self.cs(0)
             for m in range(self.num):
-                self.spi.write(
-                    bytearray([_DIGIT0 + y, self.buffer[(y * self.num) + m]])
-                )
+                self.spi.write(bytearray([_DIGIT0 + y, self.buffer[(y * self.num) + m]]))
             self.cs(1)
-
-    def time_dense(self, text, x, y, col=1):
+    
+    def str_dense(self, text, x, y, col = 1):
         i = 0
         for j in range(0, len(text)):
-            self.dense_digit(text[j], x + i, y, col)
+            self.dense_char(text[j], x + i, y, col)
             if j < len(text) - 1:
                 if text[j + 1] in __NARROWCHARACTERS or text[j] in __NARROWCHARACTERS:
                     i = i + 3
                     continue
+                elif  text[j] in __WIDECHARACTERS:
+                    i = i + 6
+                    continue
             i = i + 5
 
-    def time_dense_and_show(self, text, x=0, y=0, col=1):
-        self.time_dense(text, x, y, col)
+    def str_dense_and_show(self, text, x=0, y=0, col=1):
+        text = text.upper()
+        self.str_dense(text, x, y, col)
         self.show()
-
+    
     def read_bit_from_byte(self, byte, nth_bit):
-        """
+        '''
         The first bit starts from the right
-        """
+        '''
         return byte >> nth_bit & 1
 
     def read_byte_from_byte_sequence(self, byte_sequence, nth_sequence):
-        """
+        '''
         The first byte sequence starts from the right
-        """
-        return byte_sequence >> nth_sequence * 8 & 0xFF
-
-    def byte_sequence(self, byte_sequence, x, y, col=1):
+        '''
+        return byte_sequence >> nth_sequence * 8 & 0xff
+    
+    def byte_sequence(self, byte_sequence, x, y, col = 1):
         for row in range(8):
             row_byte = self.read_byte_from_byte_sequence(byte_sequence, row)
             for column in range(8):
                 if self.read_bit_from_byte(row_byte, column) == 1:
                     self.pixel(column + x, row + y, col)
 
-    def dense_digit(self, digit, x, y, col=1):
-        digit_index = ord(digit) - 48
-
-        if digit_index < 0 or digit_index > 10:
+    def dense_char(self, char, x, y, col = 1):
+        if char in char_patterns.keys():
+            self.byte_sequence(char_patterns[char], x, y, col)
+        else:
             return
-
-        self.byte_sequence(digit_pixels[digit_index], x, y, col)
-
-    def scroll_text(self, msg, refresh_rate=10, y=0, col=1):
+    
+        
+    def scroll_text(self, msg, refresh_rate = 10, y = 0, col = 1):
         msg_len = len(msg)
+        msg = msg.upper()
         for x in range(self.num * 8, -msg_len * 8, -1):
-            self.text(msg, x, y, col)
+            self.str_dense(msg, x, y, col)
             self.show()
             sleep(1 / refresh_rate)
             self.fill(0)
