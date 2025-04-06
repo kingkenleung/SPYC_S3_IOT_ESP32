@@ -7,8 +7,7 @@ https://github.com/mcauser/micropython-max7219
 
 MIT License
 Copyright (c) 2017 Mike Causer
-Copyright (c) 2023 kingkenleung, Kynson Szetau
-
+Copyright (c) 2025 kingkenleung, Kynson Szetau
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -42,19 +41,21 @@ _SHUTDOWN = const(12)
 _DISPLAYTEST = const(15)
 
 __WIDECHARACTERS = const((' ', 'M', 'W', 'X', '%'))
-__NARROWCHARACTERS = const((':', '.'))
+__NARROWCHARACTERS = const((':', '.', '°'))
 
+# Use this tool to create new characters
+# https://aero.pyc.edu.hk/~lkh1/matrix.html
 char_patterns = {
-    '0': 0x000f09090909090f,
-    '1': 0x0004040404040404,
-    '2': 0x000f01010f08080f,
-    '3': 0x000f08080f08080f,
-    '4': 0x000808080f090909,
-    '5': 0x000f08080f01010f,
-    '6': 0x000f09090f01010f,
-    '7': 0x000808080808080f,
-    '8': 0x000f09090f09090f,
-    '9': 0x000f08080f09090f,
+    '0': 0x0F09090909090F00,
+    '1': 0x0404040404040400,
+    '2': 0x0F01010F08080F00,
+    '3': 0x0F08080F08080F00,
+    '4': 0x0808080F09090900,
+    '5': 0x0F08080F01010F00,
+    '6': 0x0F09090F01010F00,
+    '7': 0x0808080808080F00,
+    '8': 0x0F09090F09090F00,
+    '9': 0x0F08080F09090F00,
     'A': 0x0909090F09090600,
     'B': 0x0709090709090700,
     'C': 0x0F09010101090F00,
@@ -82,11 +83,13 @@ char_patterns = {
     'Y': 0x0606060F09090900,
     'Z': 0x0F0103060C080F00,
     ':': 0x0000020000020000,
-    '°': 0x0000000000070507,
+    '°': 0x00000000001C141C,
     '%': 0x38293a0408172507,
     '.': 0x0200000000000000,
     ' ': 0x0000000000000000,
-    '/': 0x0101020204040808
+    '/': 0x0101020204040808,
+    '!': 0x0100010101010100,
+    '-': 0x0000000700000000
     
 }
 
@@ -166,11 +169,6 @@ class Matrix8x8:
                     continue
             i = i + 5
 
-    def str_dense_and_show(self, text, x=0, y=0, col=1):
-        text = text.upper()
-        self.str_dense(text, x, y, col)
-        self.show()
-    
     def read_bit_from_byte(self, byte, nth_bit):
         '''
         The first bit starts from the right
@@ -195,7 +193,11 @@ class Matrix8x8:
             self.byte_sequence(char_patterns[char], x, y, col)
         else:
             return
-    
+
+    def show_text(self, text, x=0, y=0, col=1):
+        text = text.upper()
+        self.str_dense(text, x, y, col)
+        self.show()
         
     def scroll_text(self, msg, refresh_rate = 10, y = 0, col = 1):
         msg_len = len(msg)

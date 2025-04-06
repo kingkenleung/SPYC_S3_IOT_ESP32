@@ -19,5 +19,7 @@ display.fill(0)
 
 # Keep running forever
 while True:
-    display.scroll_text("Duck", 15) # 30 columns per second
-    time.sleep(1)  # Wait 1 second before scrolling again
+    display.scroll_text("Hello-World!", 15)
+#     display.show_text("00:00:00")
+
+
